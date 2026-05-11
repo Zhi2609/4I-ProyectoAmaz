@@ -213,4 +213,17 @@ router.put(
   },
 );
 
+router.delete(
+  "/productos/:id",
+  userMiddleware.isLoggedIn,
+  userMiddleware.isAdmin,
+  (req, res) => {
+    const { id } = req.params;
+    db.query("DELETE FROM productos WHERE id = ?", [id], (err) => {
+      if (err) return res.status(500).send(err);
+      res.status(200).send({ msg: "Producto eliminado con éxito" });
+    });
+  },
+);
+
 module.exports = router;
