@@ -178,52 +178,37 @@ router.get(
   },
 );
 
+
+module.exports = router;
+
+/* ------------------------------------------------------------------- */
+const express = require("express");
+const router = express.Router();
+const userMiddleware = require("../middleware/user.js");
+
+// Importamos el controlador
+const productController = require("../controllers/productController.js");
+
+// Definimos las rutas y les asignamos su función del controlador
 router.post(
   "/productos",
   userMiddleware.isLoggedIn,
   userMiddleware.isAdmin,
-  (req, res) => {
-    const { nombre, descripcion, precio, stock } = req.body;
-    db.query(
-      "INSERT INTO productos (nombre, descripcion, precio, stock) VALUES (?, ?, ?, ?)",
-      [nombre, descripcion, precio, stock],
-      (err) => {
-        if (err) return res.status(500).send(err);
-        res.status(201).send({ msg: "Producto agregado al inventario" });
-      },
-    );
-  },
+  productController.crearProducto // Solo pasamos la referencia a la función
 );
 
 router.put(
   "/productos/:id",
   userMiddleware.isLoggedIn,
   userMiddleware.isAdmin,
-  (req, res) => {
-    const { nombre, descripcion, precio, stock } = req.body;
-    const { id } = req.params;
-    db.query(
-      "UPDATE productos SET nombre = ?, descripcion = ?, precio = ?, stock = ? WHERE id = ?",
-      [nombre, descripcion, precio, stock, id],
-      (err) => {
-        if (err) return res.status(500).send(err);
-        res.status(200).send({ msg: "Producto actualizado con éxito" });
-      },
-    );
-  },
+  productController.actualizarProducto
 );
 
 router.delete(
   "/productos/:id",
   userMiddleware.isLoggedIn,
   userMiddleware.isAdmin,
-  (req, res) => {
-    const { id } = req.params;
-    db.query("DELETE FROM productos WHERE id = ?", [id], (err) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send({ msg: "Producto eliminado con éxito" });
-    });
-  },
+  productController.eliminarProducto
 );
 
 module.exports = router;

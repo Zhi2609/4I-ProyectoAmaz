@@ -89,6 +89,23 @@
           <h2>Productos Destacados</h2>
         </div>
 
+        <div class="search-container">
+          <input
+            type="text"
+            id="search-input"
+            placeholder="Buscar productos..."
+          />
+          <button id="search-btn" class="btn-secondary">Buscar</button>
+        </div>
+
+        <section id="orders-view" class="view hidden">
+          <h2>Mi Historial de Pedidos</h2>
+          <div id="orders-container"></div>
+          <button onclick="showView('catalog-view')" class="btn-primary">
+            Volver a la tienda
+          </button>
+        </section>
+
         <div class="grid" id="products-grid"></div>
       </section>
     </main>
