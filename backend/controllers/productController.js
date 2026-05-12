@@ -33,8 +33,29 @@ const eliminarProducto = (req, res) => {
   });
 };
 
+const listarProductos = (req, res) => {
+  db.query("SELECT * FROM productos", (err, results) => {
+    if (err) return res.status(500).send(err);
+    res.status(200).send(results);
+  });
+};
+
+const buscarProductos = (req, res) => {
+  const query = req.query.q || "";
+  db.query(
+    "SELECT * FROM productos WHERE nombre LIKE ? OR descripcion LIKE ?",
+    [`%${query}%`, `%${query}%`],
+    (err, results) => {
+      if (err) return res.status(500).send(err);
+      res.status(200).send(results);
+    }
+  );
+};
+
 module.exports = {
   crearProducto,
   actualizarProducto,
   eliminarProducto,
+  listarProductos,
+  buscarProductos
 };
