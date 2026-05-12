@@ -2,3 +2,4 @@
 backend/package-lock.json
 .postman/
 postman/
+.env
