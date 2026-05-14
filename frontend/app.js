@@ -3,6 +3,15 @@ let currentUser = null;
 let cart = [];
 let adminProducts = [];
 
+function showToast(msg, type = "ok") {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "toast-" + type;
+  el.classList.add("show");
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => el.classList.remove("show"), 3000);
+}
+
 function showView(viewId) {
   document.querySelectorAll(".view").forEach((v) => v.classList.add("hidden"));
   document.getElementById(viewId).classList.remove("hidden");
