@@ -3,6 +3,10 @@
 ---
 ```
 ├── 📁 backend
+│   ├── 📁 controllers
+│   │   ├── 📄 orderController.js
+│   │   ├── 📄 productController.js
+│   │   └── 📄 userController.js
 │   ├── 📁 lib
 │   │   └── 📄 db.js
 │   ├── 📁 middleware
