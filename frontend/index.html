@@ -4,20 +4,24 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Amazing - Tienda en Línea</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
     <header>
-      <div class="logo">Amazing (No Amazon)</div>
+      <div class="logo" id="logo">Amazing</div>
       <nav id="navbar">
-        <button id="nav-cart" class="hidden">
-          🛒 Carrito <span id="cart-count">(0)</span>
-        </button>
+        <button id="nav-orders" class="hidden">Mis Pedidos</button>
+        <button id="nav-admin" class="hidden">Panel Admin</button>
+        <button id="nav-cart" class="hidden"> Carrito <span id="cart-count">(0)</span></button>
         <button id="nav-logout" class="hidden">Cerrar Sesión</button>
       </nav>
     </header>
 
     <main>
+      <!-- Auth View -->
       <section id="auth-view" class="view active">
         <div class="card form-container">
           <h2 id="form-title">Iniciar Sesión</h2>
@@ -25,21 +29,11 @@
           <form id="login-form">
             <div class="input-group">
               <label for="login-username">Usuario</label>
-              <input
-                type="text"
-                id="login-username"
-                required
-                placeholder="Ingresa tu usuario"
-              />
+              <input type="text" id="login-username" required placeholder="Ingresa tu usuario" />
             </div>
             <div class="input-group">
               <label for="login-password">Contraseña</label>
-              <input
-                type="password"
-                id="login-password"
-                required
-                placeholder="Ingresa tu contraseña"
-              />
+              <input type="password" id="login-password" required placeholder="Ingresa tu contraseña" />
             </div>
             <button type="submit" class="btn-primary">Entrar</button>
           </form>
@@ -47,30 +41,15 @@
           <form id="register-form" class="hidden">
             <div class="input-group">
               <label for="reg-username">Nuevo Usuario</label>
-              <input
-                type="text"
-                id="reg-username"
-                required
-                placeholder="Crea un nombre de usuario"
-              />
+              <input type="text" id="reg-username" required placeholder="Crea un nombre de usuario" />
             </div>
             <div class="input-group">
               <label for="reg-password">Contraseña</label>
-              <input
-                type="password"
-                id="reg-password"
-                required
-                placeholder="Crea una contraseña"
-              />
+              <input type="password" id="reg-password" required placeholder="Crea una contraseña" />
             </div>
             <div class="input-group">
               <label for="reg-password-confirm">Confirmar Contraseña</label>
-              <input
-                type="password"
-                id="reg-password-confirm"
-                required
-                placeholder="Repite la contraseña"
-              />
+              <input type="password" id="reg-password-confirm" required placeholder="Repite la contraseña" />
             </div>
             <button type="submit" class="btn-primary">Crear Cuenta</button>
           </form>
@@ -84,29 +63,94 @@
         </div>
       </section>
 
+      <!-- Catalog View -->
       <section id="catalog-view" class="view hidden">
         <div class="catalog-header">
           <h2>Productos Destacados</h2>
         </div>
-
         <div class="search-container">
-          <input
-            type="text"
-            id="search-input"
-            placeholder="Buscar productos..."
-          />
+          <input type="text" id="search-input" placeholder="Buscar productos..." />
           <button id="search-btn" class="btn-secondary">Buscar</button>
         </div>
-
-        <section id="orders-view" class="view hidden">
-          <h2>Mi Historial de Pedidos</h2>
-          <div id="orders-container"></div>
-          <button onclick="showView('catalog-view')" class="btn-primary">
-            Volver a la tienda
-          </button>
-        </section>
-
+        <div id="loading-state">Cargando productos...</div>
+        <div id="empty-state" class="hidden">No se encontraron productos.</div>
         <div class="grid" id="products-grid"></div>
+      </section>
+
+      <!-- Cart View -->
+      <section id="cart-view" class="view hidden">
+        <h2>Tu Carrito</h2>
+        <div id="cart-container"></div>
+        <div id="cart-footer" class="hidden">
+          <div class="cart-summary">
+            <p class="cart-total">Total: <span id="cart-total-amount">$0.00</span></p>
+          </div>
+          <button id="checkout-btn" class="btn-primary" onclick="placeOrder()">Pagar ahora</button>
+          <button onclick="showView('catalog-view')" class="btn-secondary">Seguir comprando</button>
+        </div>
+      </section>
+
+      <!-- Orders View -->
+      <section id="orders-view" class="view hidden">
+        <h2>Mi Historial de Pedidos</h2>
+        <div id="orders-container"></div>
+        <div style="margin-top: 20px;">
+          <button onclick="showView('catalog-view')" class="btn-primary">Volver a la tienda</button>
+        </div>
+      </section>
+
+      <section id="admin-view" class="view hidden">
+        <div class="admin-tabs">
+          <button class="tab-btn active" data-tab="tab-products">Productos</button>
+          <button class="tab-btn" data-tab="tab-clients">Clientes</button>
+        </div>
+
+        <div id="tab-products" class="tab-content active">
+          <div class="admin-header">
+            <h2>Gestionar Productos</h2>
+            <button id="btn-new-product" class="btn-secondary" style="width:auto;">+ Nuevo Producto</button>
+          </div>
+          <div id="product-form-container" class="hidden">
+            <div class="card admin-form">
+              <h3 id="form-product-title">Agregar Producto</h3>
+              <form id="product-form">
+                <input type="hidden" id="product-id" />
+                <div class="input-group">
+                  <label for="prod-nombre">Nombre *</label>
+                  <input type="text" id="prod-nombre" required />
+                </div>
+                <div class="input-group">
+                  <label for="prod-desc">Descripcion</label>
+                  <textarea id="prod-desc" rows="3"></textarea>
+                </div>
+                <div class="admin-form-row">
+                  <div class="input-group">
+                    <label for="prod-precio">Precio *</label>
+                    <input type="number" id="prod-precio" step="0.01" required />
+                  </div>
+                  <div class="input-group">
+                    <label for="prod-stock">Stock</label>
+                    <input type="number" id="prod-stock" min="0" />
+                  </div>
+                </div>
+                <div class="input-group">
+                  <label for="prod-imagen">URL de Imagen</label>
+                  <input type="url" id="prod-imagen" placeholder="https://..." />
+                </div>
+                <div class="admin-form-actions">
+                  <button type="submit" class="btn-primary" style="width:auto;">Guardar</button>
+                  <button type="button" class="btn-secondary" style="width:auto;" onclick="hideProductForm()">Cancelar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div id="admin-products-grid" class="grid"></div>
+        </div>
+
+        <div id="tab-clients" class="tab-content hidden">
+          <h2>Clientes Registrados</h2>
+          <div id="clients-table-container"></div>
+        </div>
       </section>
     </main>
 

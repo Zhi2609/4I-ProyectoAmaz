@@ -3,84 +3,59 @@ const bcrypt = require("bcryptjs");
 const { v4: uuidv4 } = require("uuid");
 const jwt = require("jsonwebtoken");
 
-const signUp = (req, res) => {
+const register = async (req, res) => {
   const { username, password } = req.body;
-  db.query(
-    `SELECT id FROM usuarios WHERE LOWER(username) = LOWER(?)`,
-    [username],
-    (err, result) => {
-      if (result && result.length) {
-        return res
-          .status(409)
-          .send({ msg: "Este nombre de usuario ya está en uso" });
-      } else {
-        bcrypt.hash(password, 10, (err, hash) => {
-          if (err) return res.status(500).send({ msg: err });
-          db.query(
-            `INSERT INTO usuarios (id, username, password, rol) VALUES (?, ?, ?, 'cliente')`,
-            [uuidv4(), username, hash],
-            (err) => {
-              if (err) return res.status(400).send({ msg: err });
-              return res
-                .status(201)
-                .send({ msg: "Usuario registrado con éxito" });
-            },
-          );
-        });
-      }
-    },
-  );
+  try {
+    const [existing] = await db.query(
+      "SELECT id FROM usuarios WHERE LOWER(username) = LOWER(?)",
+      [username]
+    );
+    if (existing.length) {
+      return res.status(409).send({ msg: "Este nombre de usuario ya esta en uso" });
+    }
+    const hash = await bcrypt.hash(password, 10);
+    await db.query(
+      "INSERT INTO usuarios (id, username, password, rol) VALUES (?, ?, ?, 'cliente')",
+      [uuidv4(), username, hash]
+    );
+    res.status(201).send({ msg: "Usuario registrado con exito" });
+  } catch (err) {
+    res.status(500).send({ msg: err.message });
+  }
 };
 
-const login = (req, res) => {
+const login = async (req, res) => {
   const { username, password } = req.body;
-  db.query(
-    `SELECT * FROM usuarios WHERE username = ?`,
-    [username],
-    (err, result) => {
-      if (err) return res.status(400).send({ msg: err });
-      if (!result.length)
-        return res.status(401).send({ msg: "Credenciales inválidas" });
-
-      bcrypt.compare(password, result[0].password, (bErr, bResult) => {
-        if (bResult) {
-          const token = jwt.sign(
-            {
-              username: result[0].username,
-              userId: result[0].id,
-              rol: result[0].rol,
-            },
-            "SECRETKEY",
-            { expiresIn: "7d" },
-          );
-          return res.status(200).send({
-            msg: "Logueado con éxito",
-            token,
-            user: {
-              id: result[0].id,
-              username: result[0].username,
-              rol: result[0].rol,
-            },
-          });
-        }
-        return res.status(401).send({ msg: "Credenciales inválidas" });
-      });
-    },
-  );
+  try {
+    const [results] = await db.query("SELECT * FROM usuarios WHERE username = ?", [username]);
+    if (!results.length) {
+      return res.status(401).send({ msg: "Credenciales invalidas" });
+    }
+    const match = await bcrypt.compare(password, results[0].password);
+    if (!match) {
+      return res.status(401).send({ msg: "Credenciales invalidas" });
+    }
+    const token = jwt.sign(
+      { username: results[0].username, userId: results[0].id, rol: results[0].rol },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+    res.status(200).send({
+      token,
+      user: { id: results[0].id, username: results[0].username, rol: results[0].rol }
+    });
+  } catch (err) {
+    res.status(500).send({ msg: err.message });
+  }
 };
 
-const obtenerClientes = (req, res) => {
-  db.query(
-    'SELECT id, username, registered FROM usuarios WHERE rol = "cliente"',
-    (err, results) => {
-      if (err) return res.status(500).send(err);
-      res.status(200).send(results);
-    },
-  );
+const getAll = async (req, res) => {
+  try {
+    const [results] = await db.query('SELECT id, username, registered FROM usuarios WHERE rol = "cliente"');
+    res.status(200).send(results);
+  } catch (err) {
+    res.status(500).send({ msg: err.message });
+  }
 };
 
-module.exports = {
-    signUp,
-    login,
-    obtenerClientes,
-};
+module.exports = { register, login, getAll };

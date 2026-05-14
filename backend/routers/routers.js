@@ -2,27 +2,23 @@ const express = require("express");
 const router = express.Router();
 const userMiddleware = require("../middleware/users.js");
 
-// Importación de Controladores
 const productController = require("../controllers/productController.js");
 const userController = require("../controllers/userController.js");
 const orderController = require("../controllers/orderController.js");
 
-// --- RUTAS DE AUTENTICACIÓN ---
-router.post("/sign-up", userController.signUp);
-router.post("/login", userController.login);
+router.post("/auth/registro", userMiddleware.validateRegister, userController.register);
+router.post("/auth/login", userController.login);
 
-// --- RUTAS DE PRODUCTOS (Públicas) ---
-router.get("/productos", productController.listarProductos); 
-router.get("/productos/buscar", productController.buscarProductos);
+router.get("/productos", productController.getAll);
+router.get("/productos/buscar", productController.search);
 
-// --- RUTAS DE PEDIDOS (Clientes) ---
-router.get("/pedidos", userMiddleware.isLoggedIn, orderController.obtenerPedidos);
-router.post("/pedidos", userMiddleware.isLoggedIn, orderController.crearPedido);
+router.get("/pedidos", userMiddleware.isLoggedIn, orderController.getUserOrders);
+router.post("/pedidos", userMiddleware.isLoggedIn, orderController.create);
 
-// --- RUTAS ADMINISTRATIVAS ---
-router.get("/clientes", userMiddleware.isLoggedIn, userMiddleware.isAdmin, userController.obtenerClientes);
-router.post("/productos", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.crearProducto);
-router.put("/productos/:id", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.actualizarProducto);
-router.delete("/productos/:id", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.eliminarProducto);
+router.get("/admin/usuarios", userMiddleware.isLoggedIn, userMiddleware.isAdmin, userController.getAll);
+router.get("/admin/productos", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.getAllAdmin);
+router.post("/admin/productos", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.create);
+router.put("/admin/productos/:id", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.update);
+router.delete("/admin/productos/:id", userMiddleware.isLoggedIn, userMiddleware.isAdmin, productController.remove);
 
 module.exports = router;

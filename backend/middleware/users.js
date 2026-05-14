@@ -34,7 +34,7 @@ module.exports = {
     try {
       const authHeader = req.headers.authorization;
       const token = authHeader.split(" ")[1];
-      const decoded = jwt.verify(token, "SECRETKEY"); /*  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))" */
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
       req.userData = decoded;
       next();
     } catch (err) {
